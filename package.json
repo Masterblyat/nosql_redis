@@ -1,0 +1,19 @@
+{
+  "devDependencies": {
+    "@types/node": "^20.11.4",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@types/redis": "^4.0.11",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
+    "redis": "^4.6.12"
+  },
+  "name": "discord-bot",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "tsc",
+    "start": "node lib/main.js"
+  }
+}
