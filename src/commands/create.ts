@@ -14,7 +14,7 @@ export default async (interaction: CommandInteraction, client: Client = interact
         content
     };
     
-    //défini la valeur d'un champ spécifique dans une clé de hachage Redis 
+    //defini la valeur d'un champ specifique dans une cle de hachage Redis 
     await client.redis.hSet('commands', name, JSON.stringify(customCommand));
 
     const newCommand = new SlashCommandBuilder()

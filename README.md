@@ -9,8 +9,14 @@
 - Docker-compose
 - NodeJS
 
+### Configuration
+
+Edit the `.env` file to change the token of the bot.
+Run `npm install` to install dependencies
+Run `npm run build` to build the bot.
+
+
 ### Lancement
 
 - `docker-compose up -d`
-- `npm install`
 - `npm start`
