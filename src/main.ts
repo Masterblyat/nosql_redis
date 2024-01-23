@@ -3,6 +3,9 @@ import { readdirSync } from "fs";
 import { Client } from "./utils/Types";
 import { createClient } from "redis";
 import { config } from "dotenv";
+import { MongoClient } from "mongodb";
+import { Constants } from "./utils/Constants";
+import { Mongo } from "./utils/Types";
 
 config()
 
@@ -11,8 +14,10 @@ const client: Client = new DiscordClient({
 });
 
 client.redis = createClient({
-    url: "redis://localhost:6379/0"
+    url: "redis://" + Constants.REDIS_HOST + ":" + Constants.REDIS_PORT + "/" + Constants.REDIS_DB
 });
+
+client.mongo = new MongoClient("mongodb://" + Constants.MONGO_HOST + ":" + Constants.MONGO_PORT);
 
 client.on("ready", async () => {
     const commands = readdirSync(__dirname + "/commands").map((file) => file.split(".")[0]).filter(e => !e.startsWith("_"));
@@ -30,6 +35,7 @@ client.on("ready", async () => {
 
     client.redis.on("error", (err) => {
         console.error("Redis error : " + err);
+        process.exit(1);
     });
 
     client.redis.connect();
@@ -40,6 +46,9 @@ client.on("ready", async () => {
             resolve(true);
         });
     });
+
+    await client.mongo.connect();
+    console.log('Mongo ready !');
 
     if (!(await client.redis.exists("messageCounter"))) await client.redis.set("messageCounter", 0);
 
@@ -104,8 +113,16 @@ client.on("messageCreate", async (message: Message) => {
     try {
         if (message.author.bot === true) return;
         await client.redis.incr('messageCounter');
+        
+        // Increment for redis
         if (!(await client.redis.exists(message.author.id + 'messageCounter'))) await client.redis.set(message.author.id + 'messageCounter', 0);
         await client.redis.incr(message.author.id + 'messageCounter');
+
+        // Increment for mongo
+        const collection = client.mongo.db(Constants.MONGO_DB).collection("global_leaderboard");
+        await collection.insertOne({userId: message.author.id, date: message.createdAt} as Mongo['LEADERBOARD']);
+        
+        
     } catch (e) {
         console.error(e);
     }

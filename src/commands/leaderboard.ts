@@ -1,24 +1,34 @@
-import { CommandInteraction, SlashCommandBuilder, EmbedBuilder, Colors } from 'discord.js'
-import { Client } from '../utils/Types'
+import { CommandInteraction, Colors } from "discord.js";
+import { Client } from "../utils/Types";
+import { Constants } from "../utils/Constants";
+import { SlashCommandBuilder, EmbedBuilder } from "@discordjs/builders";
 
 export default async (interaction: CommandInteraction, client: Client = interaction.client) => {
+    const collectionLeaderboard = client.mongo.db(Constants.MONGO_DB).collection("global_leaderboard");
+    const totalMessage = await collectionLeaderboard.countDocuments();
+    const allElements = await collectionLeaderboard.find().toArray(); // [{userId: string, date: number}]
 
-    const totalMessage = await client.redis.get('messageCounter') || 0;
-    
-    const redisKeys = await client.redis.keys('*messageCounter');
-
-    redisKeys.splice(redisKeys.indexOf('messageCounter'), 1);
-    redisKeys.splice(redisKeys.findIndex(e => e.includes(client.user.id)), 1);
-
-    let leaderboard = await Promise.all(redisKeys.map(async (key) => {
-        const userId = key.replace('messageCounter', '');
-
-        const user = client.users.cache.get(userId) || await client.users.fetch(userId);
-        const message = await client.redis.get(key);
-        return { user, message };
+    // add user to leaderboard
+    let leaderboard: any[] = await Promise.all(allElements.map(async (key) => {
+        const user = client.users.cache.get(key.userId) || await client.users.fetch(key.userId);
+        return {
+            ...key,
+            user
+        }
     }));
 
-    leaderboard = leaderboard.filter((user) => user != undefined);
+    //convert leaderboard to [{userId: string, messageCount: number, user: User}]
+    leaderboard = leaderboard.map((user) => {
+        const messageCount = allElements.filter((key) => key.userId == user.userId).length;
+        return {
+            userId: user.userId,
+            message: messageCount,
+            user: user.user
+        }
+    });
+
+    //remove duplicate
+    leaderboard = leaderboard.filter((user, index) => leaderboard.findIndex((user2) => user2.userId == user.userId) == index);
 
     leaderboard.sort((a, b) => Number(b.message) - Number(a.message));
 
@@ -38,9 +48,8 @@ export default async (interaction: CommandInteraction, client: Client = interact
     });
 
     interaction.reply({ embeds: [embed] });
-
 }
 
 export const builder = new SlashCommandBuilder()
     .setName('leaderboard')
-    .setDescription('Get the leaderboard of the server');
+    .setDescription('Get the leaderboard of the bot');
