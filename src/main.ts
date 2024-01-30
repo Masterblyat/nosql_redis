@@ -75,8 +75,6 @@ client.on("interactionCreate", async (interaction) => {
         //Vérification de la présence de la commande personnalisée :
         if (command) {
 
-            console.log(customCommands);
-
             //Réponse à l'interaction avec la commande personnalisée :
             console.log(interaction.user.tag + " used " + interaction.commandName + " custom command");
             try {
