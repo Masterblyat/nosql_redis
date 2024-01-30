@@ -1,5 +1,6 @@
 import { CommandInteraction, SlashCommandBuilder, CommandInteractionOptionResolver } from 'discord.js'
 import { Client } from '../utils/Types'
+import { Constants } from '../utils/Constants';
 
 export default async (interaction: CommandInteraction, client: Client = interaction.client) => {
     const name = (interaction.options as CommandInteractionOptionResolver).getString('name') as string;
@@ -14,8 +15,7 @@ export default async (interaction: CommandInteraction, client: Client = interact
         content
     };
     
-    //defini la valeur d'un champ specifique dans une cle de hachage Redis 
-    await client.redis.hSet('commands', name, JSON.stringify(customCommand));
+    await client.mongo.db(Constants.MONGO_DB).collection('custom_commands').insertOne(customCommand);
 
     const newCommand = new SlashCommandBuilder()
         .setName(name)
