@@ -1,0 +1,21 @@
+version: '3'
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - 6379:6379
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    ports:
+      - 8001:8001
+    volumes:
+      - redis:/db
+  mongo:
+    image: mongo:6
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo:/data/db
+volumes:
+  redis:
+  mongo:
