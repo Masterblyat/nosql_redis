@@ -38,3 +38,13 @@ Run `npm run build` to build the bot.
     "content": "string"
 }
 ```
+
+### Redis structure
+#### Daily leaderboard
+*In-DB: `<userId>messageCounter=<messagesCount>`*
+```json
+{
+    "userId": "string",
+    "counterMessage": 12345789
+}
+```
